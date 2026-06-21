@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ResumeAI – Intelligent Resume Screening Dashboard</title>
+  <meta name="description" content="AI-powered resume screening using TF-IDF and cosine similarity to rank candidates."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- Background orbs -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar" aria-label="Main navigation">
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-user-check"></i></div>
+        <span class="logo-text">Resume<span class="logo-accent">AI</span></span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#screen-panel" class="nav-link active" id="nlInput"><i class="fa-solid fa-magnifying-glass"></i> Screen</a></li>
+        <li><a href="#results-section" class="nav-link" id="nlResults"><i class="fa-solid fa-list-ol"></i> Results</a></li>
+        <li><a href="#analytics-section" class="nav-link" id="nlAnalytics"><i class="fa-solid fa-chart-bar"></i> Analytics</a></li>
+      </ul>
+      <div class="nav-end">
+        <div class="server-pill" id="serverStatus">
+          <span class="status-dot"></span>
+          <span class="status-lbl">Connecting…</span>
+        </div>
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun sun-icon"></i>
+          <i class="fa-solid fa-moon moon-icon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <div class="hero-content">
+      <span class="hero-badge"><i class="fa-solid fa-sparkles"></i> TF-IDF · Cosine Similarity · ML Ranking</span>
+      <h1>Intelligent Resume<br><span class="grad-text">Screening Dashboard</span></h1>
+      <p class="hero-sub">Paste a job description, upload resumes, and instantly get AI-ranked candidates with match scores and keyword insights.</p>
+    </div>
+    <div class="hero-cards" aria-hidden="true">
+      <div class="floaty-card fc-1">
+        <i class="fa-solid fa-trophy"></i>
+        <div><strong>#1 Match</strong><span>Alex — 100%</span></div>
+      </div>
+      <div class="floaty-card fc-2">
+        <i class="fa-solid fa-brain"></i>
+        <div><strong>TF-IDF</strong><span>AI Powered</span></div>
+      </div>
+      <div class="floaty-card fc-3">
+        <i class="fa-solid fa-bolt"></i>
+        <div><strong>Instant</strong><span>Real-time ranking</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ── -->
+  <main class="main-content">
+
+    <!-- Alerts -->
+    <div id="errorBanner" class="alert error hidden" role="alert">
+      <i class="fa-solid fa-circle-xmark"></i>
+      <div><strong>Error</strong><span id="errorText"></span></div>
+      <button class="close-btn" onclick="this.parentElement.classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="successBanner" class="alert success hidden" role="status">
+      <i class="fa-solid fa-circle-check"></i>
+      <div><strong>Done!</strong><span id="successText"></span></div>
+      <button class="close-btn" onclick="this.parentElement.classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- ── SCREEN PANEL ── -->
+    <section id="screen-panel" class="glass-card screen-panel">
+      <div class="panel-hdr">
+        <div class="panel-title-wrap">
+          <div class="panel-icon-box"><i class="fa-solid fa-file-magnifying-glass"></i></div>
+          <div>
+            <h2>Screening Configuration</h2>
+            <p>Define the job requirements and candidate pool</p>
+          </div>
+        </div>
+        <span class="algo-badge"><i class="fa-solid fa-microchip"></i> TF-IDF + Cosine Similarity</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="two-col">
+
+          <!-- Left: Job Description -->
+          <div class="form-group">
+            <label class="form-label" for="jobDesc">
+              <i class="fa-solid fa-briefcase"></i> Job Description / Required Skills
+              <span class="label-hint">List skills, technologies, or paste the full JD</span>
+            </label>
+            <textarea id="jobDesc" class="textarea" rows="7"
+              placeholder="e.g. Python Machine Learning NLP Data Science TensorFlow Deep Learning pandas scikit-learn"></textarea>
+            <div class="jd-presets">
+              <span class="preset-label">Quick presets:</span>
+              <button class="preset-btn" data-jd="Python Machine Learning NLP Data Science TensorFlow pandas scikit-learn">ML Engineer</button>
+              <button class="preset-btn" data-jd="Java Spring Boot Microservices REST API Docker Kubernetes AWS">Java Dev</button>
+              <button class="preset-btn" data-jd="React JavaScript TypeScript HTML CSS Node.js frontend UI UX">Frontend Dev</button>
+              <button class="preset-btn" data-jd="SQL PostgreSQL ETL Data Warehouse Power BI Tableau Analytics">Data Analyst</button>
+            </div>
+          </div>
+
+          <!-- Right: Upload -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa-solid fa-users"></i> Candidate Pool
+              <span class="label-hint">Upload CSV with <code>Candidate</code>, <code>Resume</code>, <code>Experience</code> columns</span>
+            </label>
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="csvFile" accept=".csv" class="file-input"/>
+              <div id="uploadInner" class="upload-inner">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <div class="upload-text">
+                  <strong>Drop CSV here or click to browse</strong>
+                  <span>Needs columns: Candidate, Resume, Experience</span>
+                </div>
+              </div>
+              <div id="uploadPreview" class="upload-preview hidden">
+                <i class="fa-solid fa-file-csv"></i>
+                <span id="uploadName">file.csv</span>
+                <button id="removeFile" class="remove-btn"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+            <button class="use-default-btn" id="useDefaultBtn">
+              <i class="fa-solid fa-database"></i> Use built-in resumes.csv (5 candidates)
+            </button>
+
+            <!-- Stats summary (populated after run) -->
+            <div class="pool-stats hidden" id="poolStats">
+              <div class="pool-stat"><i class="fa-solid fa-users"></i><span id="statTotal">0</span><small>Candidates</small></div>
+              <div class="pool-stat"><i class="fa-solid fa-star"></i><span id="statTop">—</span><small>Top Match</small></div>
+              <div class="pool-stat"><i class="fa-solid fa-chart-line"></i><span id="statAvg">—</span><small>Avg Score</small></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="screen-btn" id="screenBtn">
+          <span class="screen-btn-inner">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <span id="screenBtnText">Screen &amp; Rank Candidates</span>
+          </span>
+          <div class="btn-shimmer"></div>
+        </button>
+      </div>
+    </section>
+
+    <!-- ── RESULTS ── -->
+    <section id="results-section" class="results-section hidden">
+
+      <!-- Top 3 podium -->
+      <div class="section-hdr">
+        <h2 class="section-title"><i class="fa-solid fa-trophy"></i> Candidate Rankings</h2>
+        <div class="section-meta" id="resultsMeta">Ranked by cosine similarity to job description</div>
+      </div>
+
+      <div class="podium" id="podium"></div>
+
+      <!-- Full Ranking Table -->
+      <div class="glass-card table-card">
+        <div class="table-hdr">
+          <div>
+            <h3><i class="fa-solid fa-list-ol"></i> Full Candidate List</h3>
+            <p id="tableSubtitle">All candidates ranked by match score</p>
+          </div>
+          <div class="table-actions">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="tableSearch" class="search-input" placeholder="Search candidate…"/>
+            </div>
+            <button class="export-btn" id="exportBtn"><i class="fa-solid fa-file-arrow-down"></i> Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="rankTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Candidate</th>
+                <th>Experience</th>
+                <th>Match Score</th>
+                <th>Grade</th>
+                <th>Keywords Matched</th>
+                <th>Resume Snippet</th>
+              </tr>
+            </thead>
+            <tbody id="rankTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ANALYTICS ── -->
+    <section id="analytics-section" class="analytics-section hidden">
+      <div class="section-hdr">
+        <h2 class="section-title"><i class="fa-solid fa-chart-bar"></i> Analytics</h2>
+      </div>
+      <div class="charts-grid">
+        <div class="glass-card chart-card">
+          <div class="chart-hdr"><h3>Match Score Distribution</h3><p>All candidates vs threshold</p></div>
+          <div class="chart-body"><canvas id="barChart" aria-label="Bar chart of match scores"></canvas></div>
+        </div>
+        <div class="glass-card chart-card">
+          <div class="chart-hdr"><h3>Grade Breakdown</h3><p>Excellent / Good / Fair / Low</p></div>
+          <div class="chart-body chart-body-sm"><canvas id="doughnutChart" aria-label="Doughnut chart of grade breakdown"></canvas></div>
+        </div>
+        <div class="glass-card chart-card">
+          <div class="chart-hdr"><h3>Experience vs Match Score</h3><p>Correlation scatter view</p></div>
+          <div class="chart-body"><canvas id="scatterChart" aria-label="Scatter chart of experience vs match score"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo"><i class="fa-solid fa-user-check"></i> ResumeAI</span>
+      <span class="footer-copy">© 2026 Resume Screening Project · Powered by Flask + TF-IDF ML</span>
+      <div class="footer-chips">
+        <span><i class="fa-brands fa-python"></i> Flask</span>
+        <span><i class="fa-solid fa-circle-nodes"></i> scikit-learn</span>
+        <span><i class="fa-solid fa-shield-halved"></i> v1.0</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Loading overlay -->
+  <div id="loadingOverlay" class="loading-overlay hidden" role="status">
+    <div class="loading-box">
+      <div class="spinner">
+        <div class="spin-ring"></div>
+        <i class="fa-solid fa-user-check spin-icon"></i>
+      </div>
+      <p class="load-title">Screening Candidates…</p>
+      <p class="load-sub" id="loadMsg">Running TF-IDF vectorization</p>
+      <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
